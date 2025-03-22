@@ -3,8 +3,6 @@ using ProjectApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// Регистрация контекста базы данных
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.

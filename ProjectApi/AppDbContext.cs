@@ -16,42 +16,36 @@ namespace ProjectApi
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Настройка связи User -> Role
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.NoAction); // Отключаем каскадное удаление
+                .OnDelete(DeleteBehavior.NoAction); 
 
-            // Настройка связи Employee -> User
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.User)
                 .WithOne(u => u.Employee)
                 .HasForeignKey<Employee>(e => e.UserId)
-                .OnDelete(DeleteBehavior.NoAction); // Отключаем каскадное удаление
+                .OnDelete(DeleteBehavior.NoAction); 
 
-            // Настройка связи Project -> Tasks
             modelBuilder.Entity<Project>()
                 .HasMany(p => p.Tasks)
                 .WithOne(t => t.Project)
                 .HasForeignKey(t => t.ProjectId)
-                .OnDelete(DeleteBehavior.NoAction); // Отключаем каскадное удаление
+                .OnDelete(DeleteBehavior.NoAction); 
 
-            // Настройка связи Task -> TaskEmployees
             modelBuilder.Entity<Models.Task>()
                 .HasMany(t => t.TaskEmployees)
                 .WithOne(te => te.Task)
                 .HasForeignKey(te => te.TaskId)
-                .OnDelete(DeleteBehavior.NoAction); // Отключаем каскадное удаление
+                .OnDelete(DeleteBehavior.NoAction); 
 
-            // Настройка связи Employee -> TaskEmployees
             modelBuilder.Entity<Employee>()
                 .HasMany(e => e.TaskEmployees)
                 .WithOne(te => te.Employee)
                 .HasForeignKey(te => te.EmployeeId)
-                .OnDelete(DeleteBehavior.NoAction); // Отключаем каскадное удаление
+                .OnDelete(DeleteBehavior.NoAction); 
 
-            // Настройка составного ключа для TaskEmployee
             modelBuilder.Entity<TaskEmployee>()
                 .HasKey(te => new { te.TaskId, te.EmployeeId });
         }

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProjectApi.Models;
 using ProjectApi.Services;
+using System.Threading.Tasks;
 
 namespace ProjectApi.Controllers
 {
@@ -16,18 +16,40 @@ namespace ProjectApi.Controllers
             _authService = authService;
         }
 
+        // Регистрация пользователя
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User user, [FromQuery] string role)
         {
+            if (user == null || string.IsNullOrEmpty(role))
+            {
+                return BadRequest("Invalid user data or role.");
+            }
+
             var result = await _authService.RegisterAsync(user, role);
-            return result ? Ok() : BadRequest();
+            if (result)
+            {
+                return Ok(new { Message = "User registered successfully." });
+            }
+
+            return BadRequest("User registration failed.");
         }
 
+        // Логин пользователя
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Models.LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Username and password are required.");
+            }
+
             var token = await _authService.LoginAsync(request.Username, request.Password);
-            return !string.IsNullOrEmpty(token) ? Ok(token) : Unauthorized();
+            if (!string.IsNullOrEmpty(token))
+            {
+                return Ok(new { Token = token });
+            }
+
+            return Unauthorized("Invalid username or password.");
         }
     }
 }

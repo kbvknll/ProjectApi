@@ -17,13 +17,11 @@ namespace ProjectApi.Services
 
         public async Task<bool> RegisterAsync(User user, string role)
         {
-            // Добавление пользователя в базу данных (заглушка)
             return await System.Threading.Tasks.Task.FromResult(true);
         }
 
         public async Task<string> LoginAsync(string login, string password)
         {
-            // Создаём заглушку пользователя, так как реальной БД пока нет
             var user = new User { Login = login, Role = new Role { Name = "User" } };
             return GenerateJwtToken(user);
         }
@@ -38,8 +36,8 @@ namespace ProjectApi.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, user.Login), // Исправлено Username -> Login
-                    new Claim(ClaimTypes.Role, user.Role.Name) // Исправлено Role -> Role.Name
+                    new Claim(ClaimTypes.Name, user.Login), 
+                    new Claim(ClaimTypes.Role, user.Role.Name) 
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),

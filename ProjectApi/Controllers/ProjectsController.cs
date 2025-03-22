@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProjectApi.DTO;
 using ProjectApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,23 +19,94 @@ namespace ProjectApi.Controllers
             _context = context;
         }
 
+        // Получение всех проектов
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
         {
-            return await _context.Projects
-                .Include(p => p.Tasks) 
+            var projects = await _context.Projects
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.TaskEmployees)
+                        .ThenInclude(te => te.Employee) 
                 .ToListAsync();
+
+            var projectDtos = projects.Select(p => new ProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
+                Cost = p.Cost,
+                Tasks = p.Tasks.Select(t => new TaskDto
+                {
+                    Id = t.Id,
+                    Description = t.Description,
+                    Employees = t.TaskEmployees.Select(te => new EmployeeDto
+                    {
+                        Id = te.Employee.Id,
+                        FirstName = te.Employee.FirstName,
+                        LastName = te.Employee.LastName,
+                        UserId = te.Employee.UserId
+                    }).ToList()
+                }).ToList(),
+                Employees = p.Tasks
+                    .SelectMany(t => t.TaskEmployees.Select(te => te.Employee))
+                    .Distinct()
+                    .Select(e => new EmployeeDto
+                    {
+                        Id = e.Id,
+                        FirstName = e.FirstName,
+                        LastName = e.LastName,
+                        UserId = e.UserId
+                    }).ToList()
+            }).ToList();
+
+            return projectDtos;
         }
 
+        // Получение проекта по ID
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(int id)
+        public async Task<ActionResult<ProjectDto>> GetProject(int id)
         {
             var project = await _context.Projects
-                .Include(p => p.Tasks) 
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.TaskEmployees)
+                        .ThenInclude(te => te.Employee) 
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (project == null) return NotFound();
-            return project;
+
+            var projectDto = new ProjectDto
+            {
+                Id = project.Id,
+                Name = project.Name,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate,
+                Cost = project.Cost,
+                Tasks = project.Tasks.Select(t => new TaskDto
+                {
+                    Id = t.Id,
+                    Description = t.Description,
+                    Employees = t.TaskEmployees.Select(te => new EmployeeDto
+                    {
+                        Id = te.Employee.Id,
+                        FirstName = te.Employee.FirstName,
+                        LastName = te.Employee.LastName,
+                        UserId = te.Employee.UserId
+                    }).ToList()
+                }).ToList(),
+                Employees = project.Tasks
+                    .SelectMany(t => t.TaskEmployees.Select(te => te.Employee))
+                    .Distinct()
+                    .Select(e => new EmployeeDto
+                    {
+                        Id = e.Id,
+                        FirstName = e.FirstName,
+                        LastName = e.LastName,
+                        UserId = e.UserId
+                    }).ToList()
+            };
+
+            return projectDto;
         }
 
         [HttpPost]
